@@ -22,6 +22,7 @@ main(int argc, char **argv)
     int index;
 
 
+
     if (argc != 3)
     {
         perror("incorrect arguments");
@@ -30,6 +31,9 @@ main(int argc, char **argv)
 
     niter = atoi(argv[1]);
     processes = atoi(argv[2]);
+
+
+
     pid_t pids[processes];
 
     //if index is even, then SCHED_OTHER, else SCHED_FIFO
@@ -43,10 +47,12 @@ main(int argc, char **argv)
         else if(pids[index] == 0)
         {
             struct sched_param param;
-            struct timeval timeEvalStruct;
-            unsigned start;
-            unsigned end;
-            long double total;
+            struct timeval timeBeforeStruct;
+            struct timeval timeAfterStruct;
+            long int total;
+
+
+
             if(index % 2 == 0)
             {
                 param.sched_priority = sched_get_priority_max(SCHED_OTHER);
@@ -55,8 +61,8 @@ main(int argc, char **argv)
             {
                 param.sched_priority = sched_get_priority_max(SCHED_FIFO);
             }
-            gettimeofday(&timeEvalStruct, NULL);
-            start = timeEvalStruct.tv_usec;
+            gettimeofday(&timeBeforeStruct, NULL);
+
             /* initialize random numbers */
             srand(SEED);
             count=0;
@@ -68,10 +74,13 @@ main(int argc, char **argv)
                 if (z<=1) count++;
             }
             pi=(double)count/niter*4;
-            gettimeofday(&timeEvalStruct, NULL);
-            end = timeEvalStruct.tv_usec;
-            total = ((long double)end - (long double)start) * 0.000001;
-            printf("process # = %d, elapsed seconds = %Le, # of trials= %d , estimate of pi is %g \n", index, total, niter,pi);
+            gettimeofday(&timeAfterStruct, NULL);
+
+            total = ((timeAfterStruct.tv_sec - timeBeforeStruct.tv_sec) * 1000000L + timeAfterStruct.tv_usec) - timeBeforeStruct.tv_usec;
+
+            printf("process # = %d, elapsed microseconds = %ld\n", index, total);
+
+
             exit(0);
         }
     }
@@ -83,4 +92,5 @@ main(int argc, char **argv)
         pid = wait(&status);
         --index;
     }
+
 }
